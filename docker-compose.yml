@@ -1,0 +1,6 @@
+php:
+  container_name: aws-swf-php7
+  image: php:7.0-fpm-alpine
+  volumes:
+    - .:/var/www/html
+  command: 'php-fpm'

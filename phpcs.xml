@@ -2,4 +2,6 @@
 <ruleset name="continuousphp-aws-swf">
     <description>PSR2 Coding standard</description>
     <rule ref="PSR2"/>
+    <arg name="extensions" value="php"/>
+    <exclude-pattern>vendor/**</exclude-pattern>
 </ruleset>
