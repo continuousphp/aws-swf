@@ -10,7 +10,9 @@
   "require": {
     "php": ">=7.0.0",
     "zendframework/zend-hydrator": "~2.2",
-    "aws/aws-sdk-php": "~3.0"
+    "aws/aws-sdk-php": "~3.0",
+    "phing/phing": "~2.13",
+    "continuousphp/aws-sdk-phing": "~0.2.1"
   },
   "require-dev": {
     "phpunit/phpunit": "~5.5",

@@ -1,0 +1,15 @@
+<?php
+return
+    [
+        'workflow' =>
+        [
+            'default' =>
+            [
+                'domain'    => '@swf.domain.name@',
+                'type'      => '@swf.workflow.name@',
+                'version'   => '@swf.workflow.version@',
+                'taskList'  => '@swf.workflow.tasklist@'
+            ]
+        ]
+    ];
+

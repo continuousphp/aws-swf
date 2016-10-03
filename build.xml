@@ -1,0 +1,105 @@
+<project name="continuousphp-aws-swf" default="help" basedir=".">
+    <import file="./vendor/continuousphp/aws-sdk-phing/tasks.xml"/>
+    <property file="./build.properties"/>
+
+    <target name="help" description="List available targets">
+        <exec executable="./vendor/bin/phing"
+              passthru="true">
+            <arg value="-l"/>
+        </exec>
+    </target>
+
+    <target name="cleanup">
+        <echo msg="Deleting local config files..." />
+    </target>
+
+    <target name="setup-env">
+        <echo msg="Setting up ${env} config files..." />
+    </target>
+
+    <target name="aws-bootstrap">
+        <aws-config region="${aws.region}" />
+        <echo msg="Reading instance identity" />
+        <if>
+            <not>
+                <isset property="aws.identity" />
+            </not>
+            <then>
+                <php expression="@file_get_contents('http://169.254.169.254/latest/meta-data/instance-id') ?: php_uname('n')"
+                     returnProperty="aws.identity" />
+            </then>
+        </if>
+    </target>
+
+    <target name="aws-workflow" description="Setup AWS SWF">
+        <if>
+            <not>
+                <isset property="swf.domain.name"/>
+            </not>
+            <then>
+                <fail message="the swf.domain.name property is required"/>
+            </then>
+        </if>
+        <aws-swf-domain name="${swf.domain.name}-${swf.domain.version}" retention="${swf.domain.retention}"/>
+
+        <foreach list="${swf.workflows}" param="workflow" target="create-swf-workflow"/>
+        <foreach list="${swf.activities}" param="activity" target="create-swf-activity"/>
+
+        <if>
+            <not>
+                <and>
+                    <equals arg1="" arg2="${aws.region}"/>
+                </and>
+            </not>
+            <then>
+                <echo message="Creating AWS config file"/>
+                <loadfile property="aws.config" file="./config/autoload/aws.local.php.dist">
+                    <filterchain>
+                        <replacetokens>
+                            <token key="aws.region" value="${aws.region}"/>
+                            <token key="aws.identity" value="${aws.identity}"/>
+                        </replacetokens>
+                    </filterchain>
+                </loadfile>
+                <echo message="${aws.config}" file="./config/autoload/aws.local.php"/>
+            </then>
+        </if>
+
+        <echo message="Creating SWF config file" />
+        <loadfile property="aws.config" file="./config/autoload/swf.local.php.dist">
+            <filterchain>
+                <replacetokens>
+                    <token key="swf.domain.name" value="${swf.domain.name}-${swf.domain.version}" />
+                    <token key="swf.workflow.name" value="${swf.workflow.name}" />
+                    <token key="swf.workflow.version" value="${swf.workflow.version}" />
+                    <token key="swf.workflow.tasklist" value="${swf.workflow.tasklist}" />
+                </replacetokens>
+            </filterchain>
+        </loadfile>
+        <echo message="${aws.config}" file="./config/autoload/swf.local.php" />
+    </target>
+
+    <target name="create-swf-workflow">
+        <aws-swf-workflow domain="${swf.domain.name}-${swf.domain.version}"
+                          name="${swf.workflow.${workflow}.name}"
+                          version="${swf.workflow.${workflow}.version}"
+                          tasklist="${swf.workflow.${workflow}.tasklist}"
+                          taskStartToCloseTimeout="${swf.workflow.${workflow}.taskStartToCloseTimeout}"
+                          executionStartToCloseTimeout="${swf.workflow.${workflow}.executionStartToCloseTimeout}"
+                          childPolicy="${swf.workflow.${workflow}.childPolicy}"/>
+    </target>
+
+    <target name="create-swf-activity">
+        <aws-swf-activity domain="${swf.domain.name}-${swf.domain.version}"
+                          name="${activity}"
+                          version="${swf.activity.${activity}.version}"
+                          tasklist="${swf.workflow.${workflow}.tasklist}"
+                          startToCloseTimeout="${swf.activity.${activity}.startToCloseTimeout}"
+                          heartbeatTimeout="${swf.activity.heartbeat}"
+                          scheduleToStartTimeout="${swf.activity.${activity}.scheduleToStartTimeout}"
+                          scheduleToCloseTimeout="${swf.activity.${activity}.scheduleToCloseTimeout}"/>
+    </target>
+
+    <target name="build" depends="cleanup, setup-env"/>
+    <target name="init" depends="aws-bootstrap, aws-workflow"/>
+</project>

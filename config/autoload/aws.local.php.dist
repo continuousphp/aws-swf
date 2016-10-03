@@ -1,0 +1,10 @@
+<?php
+return
+    [
+        'aws' =>
+        [
+            'region' => '@aws.region@'
+        ],
+        'identity' => '@aws.identity@',
+    ];
+
