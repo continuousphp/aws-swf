@@ -3,7 +3,11 @@ return
     [
         'aws' =>
         [
-            'region' => '@aws.region@'
+            'version' => 'latest',
+            'region'  => '@aws.region@',
+            'profile' => '@aws.profile@',
+            'key'     => '@aws.key@',
+            'secret'  => '@aws.secret@',
         ],
         'identity' => '@aws.identity@',
     ];

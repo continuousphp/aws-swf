@@ -1,5 +1,5 @@
 default:
   suites:
     default:
-      contexts:
-        - Continuous\Features\SwfContext
+      paths:    [ %paths.base%/features ]
+      contexts: [ Continuous\Features\Swf\SwfContext ]

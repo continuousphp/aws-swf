@@ -20,7 +20,12 @@
     <target name="aws-bootstrap">
         <echo msg="Setup AWS credential..." />
         <if>
-            <isset property="aws.profile" />
+            <and>
+                <isset property="aws.profile" />
+                <not>
+                    <equals arg1="${aws.profile}" arg2="" />
+                </not>
+            </and>
             <then>
                 <echo msg="CREDENTIAL LOAD PROFILE" />
                 <aws-config region="${aws.region}" profile="${aws.profile}" />
@@ -30,9 +35,15 @@
                     <and>
                         <isset property="aws.key" />
                         <isset property="aws.secret" />
+                        <not>
+                            <equals arg1="${aws.key}" arg2="" />
+                        </not>
+                        <not>
+                            <equals arg1="${aws.secret}" arg2="" />
+                        </not>
                     </and>
                     <then>
-                        <echo msg="CREDENTIAL LOAD KEY AND SECRET ${aws.region} ${aws.key} ${aws.secret}" />
+                        <echo msg="CREDENTIAL LOAD KEY AND SECRET ${aws.region}" />
                         <aws-config region="${aws.region}" key="${aws.key}" secret="${aws.secret}" />
                     </then>
                     <else>
@@ -42,7 +53,9 @@
                 </if>
             </else>
         </if>
+
         <echo msg="Reading instance identity" />
+
         <if>
             <not>
                 <isset property="aws.identity" />
@@ -50,6 +63,29 @@
             <then>
                 <php expression="@file_get_contents('http://169.254.169.254/latest/meta-data/instance-id') ?: php_uname('n')"
                      returnProperty="aws.identity" />
+            </then>
+        </if>
+
+        <if>
+            <not>
+                <and>
+                    <equals arg1="" arg2="${aws.region}"/>
+                </and>
+            </not>
+            <then>
+                <echo message="Creating AWS config file"/>
+                <loadfile property="aws.config" file="./config/autoload/aws.local.php.dist">
+                    <filterchain>
+                        <replacetokens>
+                            <token key="aws.region" value="${aws.region}"/>
+                            <token key="aws.identity" value="${aws.identity}"/>
+                            <token key="aws.key" value="${aws.key}"/>
+                            <token key="aws.secret" value="${aws.secret}"/>
+                            <token key="aws.profile" value="${aws.profile}"/>
+                        </replacetokens>
+                    </filterchain>
+                </loadfile>
+                <echo message="${aws.config}" file="./config/autoload/aws.local.php"/>
             </then>
         </if>
     </target>
@@ -68,34 +104,11 @@
         <foreach list="${swf.workflows}" param="workflow" target="create-swf-workflow"/>
         <foreach list="${swf.activities}" param="activity" target="create-swf-activity"/>
 
-        <if>
-            <not>
-                <and>
-                    <equals arg1="" arg2="${aws.region}"/>
-                </and>
-            </not>
-            <then>
-                <echo message="Creating AWS config file"/>
-                <loadfile property="aws.config" file="./config/autoload/aws.local.php.dist">
-                    <filterchain>
-                        <replacetokens>
-                            <token key="aws.region" value="${aws.region}"/>
-                            <token key="aws.identity" value="${aws.identity}"/>
-                        </replacetokens>
-                    </filterchain>
-                </loadfile>
-                <echo message="${aws.config}" file="./config/autoload/aws.local.php"/>
-            </then>
-        </if>
-
         <echo message="Creating SWF config file" />
         <loadfile property="aws.config" file="./config/autoload/swf.local.php.dist">
             <filterchain>
                 <replacetokens>
                     <token key="swf.domain.name" value="${swf.domain.name}-${swf.domain.version}" />
-                    <token key="swf.workflow.name" value="${swf.workflow.name}" />
-                    <token key="swf.workflow.version" value="${swf.workflow.version}" />
-                    <token key="swf.workflow.tasklist" value="${swf.workflow.tasklist}" />
                 </replacetokens>
             </filterchain>
         </loadfile>

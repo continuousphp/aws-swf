@@ -23,12 +23,19 @@ phpcs:
 	@docker exec ${CID} /bin/sh -c 'vendor/bin/phpcs -p --colors --report-full=./phpcs-reports/phpcs-report-full.txt --report-gitblame=./phpcs-reports/phpcs-report-gitblame.txt --report-info=./phpcs-reports/phpcs-report-info.txt --standard=phpcs.xml .'
 
 aws-config:
-	@echo -n "AWS Access Key ID :"; \
+	@echo -e $(BLUE)"Enter your AWS Credential information, let blank field you do not use"$(NORMAL); \
+	echo -n "AWS Profile :"; \
+	read profile; \
+	echo -n "AWS Access Key ID :"; \
 	read key; \
 	echo -n "AWS Secret Access Key :"; \
 	read secret; \
-	echo "aws.key=$$key" > .aws.conf; \
+	echo -n "AWS region :"; \
+	read region; \
+	echo "aws.profile=$$profile" > .aws.conf; \
+	echo "aws.key=$$key" >> .aws.conf; \
 	echo "aws.secret=$$secret" >> .aws.conf; \
+	echo "aws.region=$$region" >> .aws.conf; \
 	echo -e $(GREEN)"Thanks ! your config is up under .aws.conf"$(NORMAL)
 
 cleanup:
@@ -37,3 +44,9 @@ cleanup:
 setup:
 	./vendor/bin/phing -propertyfile .aws.conf build
 	./vendor/bin/phing -propertyfile .aws.conf init
+
+tu-unit:
+	./vendor/bin/phpunit --bootstrap vendor/autoload.php tests
+
+tu-func:
+	./vendor/bin/behat
