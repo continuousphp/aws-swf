@@ -18,7 +18,30 @@
     </target>
 
     <target name="aws-bootstrap">
-        <aws-config region="${aws.region}" />
+        <echo msg="Setup AWS credential..." />
+        <if>
+            <isset property="aws.profile" />
+            <then>
+                <echo msg="CREDENTIAL LOAD PROFILE" />
+                <aws-config region="${aws.region}" profile="${aws.profile}" />
+            </then>
+            <else>
+                <if>
+                    <and>
+                        <isset property="aws.key" />
+                        <isset property="aws.secret" />
+                    </and>
+                    <then>
+                        <echo msg="CREDENTIAL LOAD KEY AND SECRET ${aws.region} ${aws.key} ${aws.secret}" />
+                        <aws-config region="${aws.region}" key="${aws.key}" secret="${aws.secret}" />
+                    </then>
+                    <else>
+                        <echo msg="CREDENTIAL AUTO" />
+                        <aws-config region="${aws.region}" />
+                    </else>
+                </if>
+            </else>
+        </if>
         <echo msg="Reading instance identity" />
         <if>
             <not>
