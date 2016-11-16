@@ -6,3 +6,4 @@ composer.phar
 Thumbs.db
 config/*/*.php
 .aws.conf
+phpcs-reports/*
