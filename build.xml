@@ -9,14 +9,6 @@
         </exec>
     </target>
 
-    <target name="cleanup">
-        <echo msg="Deleting local config files..." />
-    </target>
-
-    <target name="setup-env">
-        <echo msg="Setting up ${env} config files..." />
-    </target>
-
     <target name="aws-bootstrap">
         <echo msg="Setup AWS credential..." />
         <if>
@@ -136,6 +128,6 @@
                           scheduleToCloseTimeout="${swf.activity.${activity}.scheduleToCloseTimeout}"/>
     </target>
 
-    <target name="build" depends="cleanup, setup-env"/>
+    <target name="build" depends="aws-bootstrap"/>
     <target name="init" depends="aws-bootstrap, aws-workflow"/>
 </project>

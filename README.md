@@ -71,4 +71,3 @@ $ make setup
 ./vendor/bin/phing -propertyfile .aws.conf init
 ```
 
-update for trigger cotninuous build

@@ -39,10 +39,9 @@ aws-config:
 	echo -e $(GREEN)"Thanks ! your config is up under .aws.conf"$(NORMAL)
 
 cleanup:
-	./vendor/bin/phing -propertyfile .aws.conf cleanup
+	rm config/autoload/*.php
 
 setup:
-	./vendor/bin/phing -propertyfile .aws.conf build
 	./vendor/bin/phing -propertyfile .aws.conf init
 
 tu-unit:
