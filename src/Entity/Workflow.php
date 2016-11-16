@@ -21,4 +21,7 @@ use Zend\Hydrator\HydratorInterface;
  */
 abstract class Workflow implements WorkflowInterface, HydratorInterface
 {
+    public function hydrate(array $data, $object)
+    {
+    }
 }

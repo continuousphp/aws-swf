@@ -11,6 +11,8 @@
 namespace Continuous\Swf;
 
 use Aws\Swf\SwfClient;
+use Continuous\Swf\Entity\Activity;
+use Continuous\Swf\Entity\Workflow;
 
 /**
  * Service
@@ -37,6 +39,10 @@ class Service
      */
     protected $identify;
 
+    /**
+     * Service constructor.
+     * @param SwfClient $swfClient
+     */
     public function __construct(SwfClient $swfClient)
     {
         $this->swfClient = $swfClient;
@@ -47,14 +53,15 @@ class Service
     /**
      * Poll a workflow entity for next decision request
      *
+     * @param string $taskList
      * @return WorkflowInterface
      */
-    public function pollWorkflow() : WorkflowInterface
+    public function pollWorkflow(string $taskList = 'default') : WorkflowInterface
     {
         $result = $this->swfClient->pollForDecisionTask([
             'domain' => $this->domain,
             'taskList' => [
-                'name' => 'default',
+                'name' => $taskList,
             ],
             'identify' => $this->identify,
             'maximumPageSize' => 50,
@@ -64,67 +71,74 @@ class Service
         $workflowType = $result['workflowType'];
         $workflow = $this->getWorkflowEntity($workflowType);
 
-        $workflow->hydrate($result['input']);
+        $workflow->hydrate($result['input'], $workflow);
         $workflow->process($result['events']);
 
         return $workflow;
     }
 
     /**
-     * @return \Generator of WorkflowInterface
+     * Generator of pollWorkflow.
+     *
+     * @param string $taskList
+     * @return \Generator
      */
-    public function pollWorkflowGenerator() : \Generator
+    public function pollWorkflowGenerator(string $taskList = 'default') : \Generator
     {
         while (true) {
-            yield $this->pollWorkflow();
+            yield $this->pollWorkflow($taskList);
         }
     }
 
     /**
-     * Poll a activity entity for next activity task
+     * Poll a activity entity for next activity task.
      *
+     * @param string $taskList
      * @return ActivityInterface
      */
-    public function pollActivity() : ActivityInterface
+    public function pollActivity(string $taskList = 'default') : ActivityInterface
     {
         $result = $this->swfClient->pollForActivityTask([
             'domain' => $this->domain,
             'taskList' => [
-                "name" => 'default'
+                "name" => $taskList
             ]
         ]);
 
         $activityName = $result['activityType']['name'];
         $activity     = $this->getActivityEntity($activityName);
 
-        $activity->hydrate($result['input']);
+        $activity->hydrate($result['input'], $activity);
 
         return $activity;
     }
 
     /**
+     * Generator of pollActivity
+     *
+     * @param string $taskList
      * @return \Generator
      */
-    public function pollActivityGenerator() : \Generator
+    public function pollActivityGenerator(string $taskList = 'default') : \Generator
     {
         while (true) {
-            yield $this->pollActivity();
+            yield $this->pollActivity($taskList);
         }
     }
 
     /**
      * @param string $workflowType
-     * @return WorkflowInterface
+     * @return Workflow
      */
-    protected function getWorkflowEntity(string $workflowType) : WorkflowInterface
+    protected function getWorkflowEntity(string $workflowType) : Workflow
     {
     }
 
     /**
      * @param string $activityName
-     * @return ActivityInterface
+     * @return Activity
      */
-    protected function getActivityEntity(string $activityName) : ActivityInterface
+    protected function getActivityEntity(string $activityName) : Activity
     {
     }
 }
