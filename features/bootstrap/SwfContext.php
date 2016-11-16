@@ -7,6 +7,7 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Continuous\Swf\Helper\Config;
 use Behat\Behat\Tester\Exception\PendingException;
+use Ramsey\Uuid\Uuid;
 
 /**
  * Defines application features from the specific context.
@@ -31,6 +32,9 @@ class SwfContext implements Context
 
     protected $domainName;
     protected $domainStatus;
+    protected $workflowName;
+    protected $workflowVersion;
+
 
     /**
      * Initializes context.
@@ -83,12 +87,48 @@ class SwfContext implements Context
     }
 
     /**
+     * @Given workflow name as :arg1
+     */
+    public function workflowNameAs($arg1)
+    {
+        $this->workflowName = $arg1;
+    }
+
+    /**
+     * @Given workflow version as :arg1
+     */
+    public function workflowVersionAs($arg1)
+    {
+        $this->workflowVersion = $arg1;
+    }
+
+    /**
      * @When I send describeDomain request to SWF
      */
     public function iSendDescribedomainRequestToSwf()
     {
         $domain = $this->swfClient->describeDomain([
             'name' => $this->domainName,
+        ]);
+
+        $this->setLastResponse($domain);
+    }
+
+    /**
+     * @When I send startWorkflowExecution request to SWF
+     */
+    public function iSendStartworkflowexecutionRequestToSwf()
+    {
+        $domain = $this->swfClient->startWorkflowExecution([
+            'domain' => $this->domainName,
+            'taskList' => [
+                'name' => 'default'
+            ],
+            'workflowId' => Uuid::uuid4(),
+            'workflowType' => [
+                'name' => $this->workflowName,
+                'version' => $this->workflowVersion,
+            ]
         ]);
 
         $this->setLastResponse($domain);
