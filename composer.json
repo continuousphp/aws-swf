@@ -10,13 +10,16 @@
   "require": {
     "php": ">=7.0.0",
     "zendframework/zend-hydrator": "~2.2",
-    "aws/aws-sdk-php": "~3.0"
+    "aws/aws-sdk-php": "~3.0",
+    "phing/phing": "~2.13",
+    "continuousphp/aws-sdk-phing": "~0.2.1"
   },
   "require-dev": {
     "phpunit/phpunit": "~5.5",
     "squizlabs/php_codesniffer": "~2.3",
     "behat/behat": "~3.2",
-    "phpro/grumphp": "~0.9.1"
+    "phpro/grumphp": "~0.9.1",
+    "psy/psysh": "^0.7.2"
   },
   "autoload": {
     "psr-4": {

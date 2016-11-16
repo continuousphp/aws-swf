@@ -1,0 +1,14 @@
+<?php
+return
+    [
+        'aws' =>
+        [
+            'version' => 'latest',
+            'region'  => '@aws.region@',
+            'profile' => '@aws.profile@',
+            'key'     => '@aws.key@',
+            'secret'  => '@aws.secret@',
+        ],
+        'identity' => '@aws.identity@',
+    ];
+

@@ -1,0 +1,15 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1478599158000",
+            "Effect": "Allow",
+            "Action": [
+                "swf:*"
+            ],
+            "Resource": [
+                "arn:aws:swf:*:*:/domain/cphp-demo*"
+            ]
+        }
+    ]
+}

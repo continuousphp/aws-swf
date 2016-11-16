@@ -1,0 +1,9 @@
+<?php
+return
+    [
+        'swf' =>
+        [
+            'domain' => '@swf.domain.name@',
+        ]
+    ];
+
