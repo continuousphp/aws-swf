@@ -90,16 +90,16 @@
             </not>
             <then>
                 <echo message="Creating SWF config file" />
-                <loadfile property="aws.config" file="./config/autoload/swf.local.php.dist">
+                <loadfile property="swf.config" file="./config/autoload/swf.local.php.dist">
                     <filterchain>
                         <replacetokens>
                             <token key="swf.domain.name" value="${swf.domain.name}-${swf.domain.version}" />
                         </replacetokens>
                     </filterchain>
                 </loadfile>
+                <echo message="${swf.config}" file="./config/autoload/swf.local.php" />
             </then>
         </if>
-        <echo message="${aws.config}" file="./config/autoload/swf.local.php" />
     </target>
 
     <target name="aws-workflow" description="Setup AWS SWF">
