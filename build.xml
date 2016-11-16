@@ -80,6 +80,26 @@
                 <echo message="${aws.config}" file="./config/autoload/aws.local.php"/>
             </then>
         </if>
+
+        <if>
+            <not>
+                <and>
+                    <equals arg1="" arg2="${swf.domain.name}"/>
+                    <equals arg1="" arg2="${swf.domain.version}"/>
+                </and>
+            </not>
+            <then>
+                <echo message="Creating SWF config file" />
+                <loadfile property="aws.config" file="./config/autoload/swf.local.php.dist">
+                    <filterchain>
+                        <replacetokens>
+                            <token key="swf.domain.name" value="${swf.domain.name}-${swf.domain.version}" />
+                        </replacetokens>
+                    </filterchain>
+                </loadfile>
+            </then>
+        </if>
+        <echo message="${aws.config}" file="./config/autoload/swf.local.php" />
     </target>
 
     <target name="aws-workflow" description="Setup AWS SWF">
@@ -95,16 +115,6 @@
 
         <foreach list="${swf.workflows}" param="workflow" target="create-swf-workflow"/>
         <foreach list="${swf.activities}" param="activity" target="create-swf-activity"/>
-
-        <echo message="Creating SWF config file" />
-        <loadfile property="aws.config" file="./config/autoload/swf.local.php.dist">
-            <filterchain>
-                <replacetokens>
-                    <token key="swf.domain.name" value="${swf.domain.name}-${swf.domain.version}" />
-                </replacetokens>
-            </filterchain>
-        </loadfile>
-        <echo message="${aws.config}" file="./config/autoload/swf.local.php" />
     </target>
 
     <target name="create-swf-workflow">
