@@ -79,7 +79,10 @@ class Service
         $workflowType = $result['workflowType'];
         $workflow = $this->getWorkflowEntity($workflowType['name'], $workflowType['version']);
 
-        $workflow->hydrate($result['input']);
+        if (isset($result['input'])) {
+            $workflow->hydrate(json_decode($result['input'], true));
+        }
+
         $workflow->process($result);
 
         return $workflow;
@@ -142,6 +145,8 @@ class Service
     protected function getWorkflowEntity(string $workflowName, string $version) : Workflow
     {
         $className = ClassFinder::findClass($this->config->namespace, $workflowName, 'Workflow');
+
+        return new $className();
     }
 
     /**
@@ -150,6 +155,9 @@ class Service
      */
     protected function getActivityEntity(string $activityName) : Activity
     {
+        $className = ClassFinder::findClass($this->config->namespace, $activityName, 'Activity');
+
+        return new $className();
     }
 
     /**
