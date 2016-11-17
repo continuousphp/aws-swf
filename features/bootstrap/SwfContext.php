@@ -7,12 +7,17 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Continuous\Swf\Helper\Config;
 use Behat\Behat\Tester\Exception\PendingException;
+use Continuous\Swf\Service;
+use Continuous\Swf\ServiceConfig;
+use Ramsey\Uuid\Uuid;
 
 /**
  * Defines application features from the specific context.
  */
 class SwfContext implements Context
 {
+    const DELAY_SWF_REQUEST = 2;
+
     /**
      * @var \Aws\Sdk
      */
@@ -24,6 +29,11 @@ class SwfContext implements Context
     protected $swfClient;
 
     /**
+     * @var Service
+     */
+    protected $service;
+
+    /**
      * Last SWF API response
      * @var mixed
      */
@@ -31,6 +41,9 @@ class SwfContext implements Context
 
     protected $domainName;
     protected $domainStatus;
+    protected $workflowName;
+    protected $workflowVersion;
+
 
     /**
      * Initializes context.
@@ -41,12 +54,21 @@ class SwfContext implements Context
      */
     public function __construct()
     {
-        $config = Config::awsConverter(
+        $awsConfig = Config::awsConverter(
             Config::getSection('aws')
         );
 
-        $this->sdkAws = new \Aws\Sdk($config);
+        $this->sdkAws = new \Aws\Sdk($awsConfig);
         $this->swfClient = $this->sdkAws->createClient('Swf');
+
+        $allConfig = Config::getAll();
+
+        $this->service = new Service(new ServiceConfig(
+            $allConfig->swf->domain,
+            $allConfig->identity,
+            $this->swfClient,
+            'Continuous\\Demo\\Swf'
+        ));
     }
 
     /**
@@ -83,6 +105,22 @@ class SwfContext implements Context
     }
 
     /**
+     * @Given workflow name as :arg1
+     */
+    public function workflowNameAs($arg1)
+    {
+        $this->workflowName = $arg1;
+    }
+
+    /**
+     * @Given workflow version as :arg1
+     */
+    public function workflowVersionAs($arg1)
+    {
+        $this->workflowVersion = $arg1;
+    }
+
+    /**
      * @When I send describeDomain request to SWF
      */
     public function iSendDescribedomainRequestToSwf()
@@ -92,6 +130,39 @@ class SwfContext implements Context
         ]);
 
         $this->setLastResponse($domain);
+    }
+
+    /**
+     * @When I send startWorkflowExecution request to SWF
+     */
+    public function iSendStartworkflowexecutionRequestToSwf()
+    {
+        $domain = $this->swfClient->startWorkflowExecution([
+            'domain' => $this->domainName,
+            'taskList' => [
+                'name' => 'default'
+            ],
+            'workflowId' => Uuid::uuid4(),
+            'workflowType' => [
+                'name' => $this->workflowName,
+                'version' => $this->workflowVersion,
+            ],
+            'input' => ''
+        ]);
+
+        sleep(static::DELAY_SWF_REQUEST);
+
+        $this->setLastResponse($domain);
+    }
+
+    /**
+     * @When I call service pollWorkflow
+     */
+    public function iCallServicePollworkflow()
+    {
+        $workflow = $this->service->pollWorkflow();
+
+        $this->setLastResponse($workflow);
     }
 
     /**
