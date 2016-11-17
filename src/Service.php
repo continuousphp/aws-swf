@@ -10,9 +10,11 @@
  */
 namespace Continuous\Swf;
 
+use Aws\Result;
 use Aws\Swf\SwfClient;
 use Continuous\Swf\Entity\Activity;
 use Continuous\Swf\Entity\Workflow;
+use Continuous\Swf\Helper\ClassFinder;
 
 /**
  * Service
@@ -28,26 +30,30 @@ class Service
     protected $swfClient;
 
     /**
-     * SWF Domain
-     * @var string
+     * @var ServiceConfig
      */
-    protected $domain;
-
-    /**
-     * Decider entity
-     * @var string
-     */
-    protected $identify;
+    protected $config;
 
     /**
      * Service constructor.
      * @param SwfClient $swfClient
      */
-    public function __construct(SwfClient $swfClient)
+    public function __construct(ServiceConfig $serviceConfig)
     {
-        $this->swfClient = $swfClient;
-        $this->domain = 'prod';
-        $this->identify = 'UUID OF THE EC2';
+        $this->config    = $serviceConfig;
+        $this->swfClient = $serviceConfig->swfClient;
+
+        if (false === file_exists(dirname(__DIR__)
+            . DIRECTORY_SEPARATOR
+            . 'vendor'
+            . DIRECTORY_SEPARATOR
+            . 'composer'
+            . DIRECTORY_SEPARATOR
+            . 'autoload_classmap.php')
+        ) {
+            throw new \Exception('You must generate composer autoload_classmap file 
+            for be able to reference your namepsace class without camelCase issues');
+        }
     }
 
     /**
@@ -59,20 +65,22 @@ class Service
     public function pollWorkflow(string $taskList = 'default') : WorkflowInterface
     {
         $result = $this->swfClient->pollForDecisionTask([
-            'domain' => $this->domain,
+            'domain' => $this->config->domain,
             'taskList' => [
                 'name' => $taskList,
             ],
-            'identify' => $this->identify,
+            'identify' => $this->config->identity,
             'maximumPageSize' => 50,
             'reverseOrder' => true,
         ]);
 
-        $workflowType = $result['workflowType'];
-        $workflow = $this->getWorkflowEntity($workflowType);
+        //TODO try catch result not Aws\Result...
 
-        $workflow->hydrate($result['input'], $workflow);
-        $workflow->process($result['events']);
+        $workflowType = $result['workflowType'];
+        $workflow = $this->getWorkflowEntity($workflowType['name'], $workflowType['version']);
+
+        $workflow->hydrate($result['input']);
+        $workflow->process($result);
 
         return $workflow;
     }
@@ -99,7 +107,7 @@ class Service
     public function pollActivity(string $taskList = 'default') : ActivityInterface
     {
         $result = $this->swfClient->pollForActivityTask([
-            'domain' => $this->domain,
+            'domain' => $this->config->domain,
             'taskList' => [
                 "name" => $taskList
             ]
@@ -127,11 +135,13 @@ class Service
     }
 
     /**
-     * @param string $workflowType
+     * @param string $name
+     * @param $version
      * @return Workflow
      */
-    protected function getWorkflowEntity(string $workflowType) : Workflow
+    protected function getWorkflowEntity(string $workflowName, string $version) : Workflow
     {
+        $className = ClassFinder::findClass($this->config->namespace, $workflowName, 'Workflow');
     }
 
     /**
@@ -140,5 +150,13 @@ class Service
      */
     protected function getActivityEntity(string $activityName) : Activity
     {
+    }
+
+    /**
+     *
+     */
+    public function startWorkflow(Workflow $workflowEntity)
+    {
+        //$workflowEntity->extract();
     }
 }

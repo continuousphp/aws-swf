@@ -19,6 +19,8 @@ use Zend\Hydrator\HydratorInterface;
  * @package   Continuous\Swf\Entity
  * @license   http://opensource.org/licenses/Apache-2.0 Apache License, Version 2.0
  */
-abstract class Activity implements ActivityInterface, HydratorInterface
+abstract class Activity implements ActivityInterface
 {
+    abstract public function extract() : array;
+    abstract public function hydrate(array $data);
 }

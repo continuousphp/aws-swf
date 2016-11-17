@@ -23,6 +23,38 @@ Here is our application workflow representation :
     - Eat !! ( Activity )
 ```
 
+# Installation
+
+```bash
+$ composer require 'continuousphp/aws-swf'
+```
+
+>> We use PSR-4 autoloading for discover `Workflow` and `Activity` class.
+>> But like SWF not support camelCase, [we need enable classmap](https://getcomposer.org/doc/04-schema.md#classmap) into `composer.json`
+>> the file `vendor/composer/autoload_classmap.php` is created during composer installation and help us to find class name much faster.
+
+```json
+{
+    "autoload": {
+        "classmap": ["demo/"]
+    }
+}
+```
+
+**run `composer dump-autoload` if dependencies already installed after your edition of composer.json.**
+
+## Service Configuration
+
+```php
+$ServiceConfig = new Continuous\Swf\ServiceConfig(
+    'cphp-demo-0.1.0',
+    'myDemoServer',
+    $sdkAws->createClient('Swf'),
+    'Continuous\\Demo\\Swf'
+);
+```
+
+
 # AWS Requirement
 
 In order to run our workflow Spaghetti demo, you need to have an AWS Account.
