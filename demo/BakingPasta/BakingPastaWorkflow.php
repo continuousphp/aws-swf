@@ -2,7 +2,6 @@
 
 namespace Continuous\Demo\Swf\BakingPasta;
 
-use Aws\Result;
 use Continuous\Swf\Entity\Workflow;
 
 /**
@@ -11,26 +10,64 @@ use Continuous\Swf\Entity\Workflow;
  */
 class BakingPastaWorkflow extends Workflow
 {
-    public function process(Result $result)
+    const NAME = 'bakingpasta';
+    const VERSION = '0.1.0';
+
+    protected $pasta;
+    protected $weight;
+
+    public function getName() : string
     {
-        // TODO: Implement process() method.
+        return static::NAME;
     }
 
-    public function setResult()
+    public function getVersion() : string
     {
-        // TODO: Implement setResult() method.
+        return static::VERSION;
+    }
+
+    /**
+     * Type of pasta
+     *
+     * @param $pasta
+     * @return $this
+     * @throws \Exception
+     */
+    public function setPasta($pasta)
+    {
+        if ('spaghetti' !== $pasta) {
+            throw new \Exception('Only spaghetti pasta is supported');
+        }
+
+        $this->pasta = $pasta;
+        return $this;
+    }
+
+    /**
+     * Gram of pasta
+     *
+     * @param int $weight
+     * @return $this
+     */
+    public function setWeight(int $weight)
+    {
+        $this->weight = $weight;
+        return $this;
     }
 
     public function extract() :array
     {
-        // TODO: Implement extract() method.
-
         return [
+            'parent' => $this->parent,
+            'pasta' => $this->pasta,
+            'weight' => $this->weight,
         ];
     }
 
     public function hydrate(array $data)
     {
-        // TODO: Implement hydrate() method.
+        $this->parent = $data['parent'];
+        $this->pasta = $data['pasta'];
+        $this->weight = $data['weight'];
     }
 }

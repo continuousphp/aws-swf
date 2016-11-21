@@ -2,7 +2,6 @@
 
 namespace Continuous\Demo\Swf\Spaghetti;
 
-use Aws\Result;
 use Continuous\Swf\Entity\Workflow;
 
 /**
@@ -11,26 +10,62 @@ use Continuous\Swf\Entity\Workflow;
  */
 class SpaghettiWorkflow extends Workflow
 {
-    public function process(Result $result)
+    const NAME = 'spaghetti';
+    const VERSION = '0.1.0';
+
+    /**
+     * @var string
+     */
+    protected $kwisto;
+
+    /**
+     * @var string
+     */
+    protected $client;
+
+    public function getName() : string
     {
-        // TODO: Implement process() method.
+        return static::NAME;
     }
 
-    public function setResult()
+    public function getVersion() : string
     {
-        // TODO: Implement setResult() method.
+        return static::VERSION;
+    }
+
+    /**
+     * @param string $kwisto
+     * @return $this
+     */
+    public function setKwisto(string $kwisto)
+    {
+        $this->kwisto = $kwisto;
+        return $this;
+    }
+
+    /**
+     * @param string $client
+     * @return $this
+     */
+    public function setClient(string $client)
+    {
+        $this->client = $client;
+        return $this;
     }
 
     public function extract() :array
     {
-        // TODO: Implement extract() method.
-
         return [
+            'parent' => $this->parent,
+            'kwisto' => $this->kwisto,
+            'client' => $this->client,
         ];
     }
 
     public function hydrate(array $data)
     {
-        // TODO: Implement hydrate() method.
+        $this->parent = $data['parent'];
+        $this->kwisto = $data['kwisto'];
+        $this->client = $data['client'];
     }
 }

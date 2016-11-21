@@ -20,6 +20,7 @@ composer-install:
 phpcs:
 	@rm -rf phpcs-reports
 	@mkdir phpcs-reports
+	@touch phpcs-reports/.empty
 	@docker exec ${CID} /bin/sh -c 'vendor/bin/phpcs -p --colors --report-full=./phpcs-reports/phpcs-report-full.txt --report-gitblame=./phpcs-reports/phpcs-report-gitblame.txt --report-info=./phpcs-reports/phpcs-report-info.txt --standard=phpcs.xml .'
 
 aws-config:

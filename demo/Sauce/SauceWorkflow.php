@@ -2,7 +2,6 @@
 
 namespace Continuous\Demo\Swf\Sauce;
 
-use Aws\Result;
 use Continuous\Swf\Entity\Workflow;
 
 /**
@@ -11,26 +10,45 @@ use Continuous\Swf\Entity\Workflow;
  */
 class SauceWorkflow extends Workflow
 {
-    public function process(Result $result)
+    const NAME = 'sauce';
+    const VERSION = '0.1.0';
+
+    /**
+     * @var bool
+     */
+    protected $onions = false;
+
+    public function getName() : string
     {
-        // TODO: Implement process() method.
+        return static::NAME;
     }
 
-    public function setResult()
+    public function getVersion() : string
     {
-        // TODO: Implement setResult() method.
+        return static::VERSION;
+    }
+
+    /**
+     * @param bool $wantOnions
+     * @return $this
+     */
+    public function setOnions(bool $wantOnions)
+    {
+        $this->onions = $wantOnions;
+        return $this;
     }
 
     public function extract() :array
     {
-        // TODO: Implement extract() method.
-
         return [
+            'parent' => $this->parent,
+            'onions' => $this->onions,
         ];
     }
 
     public function hydrate(array $data)
     {
-        // TODO: Implement hydrate() method.
+        $this->parent = $data['parent'];
+        $this->onions = $data['onions'];
     }
 }
