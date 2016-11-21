@@ -1,10 +1,10 @@
 <?php
 
-namespace Continuous\Demo\Swf\BakingPasta;
+namespace Continuous\Demo\Swf\Spaghetti;
 
 use Continuous\Swf\Entity\Activity;
 
-class BoilingWaterActivity extends Activity
+class EatActivity extends Activity
 {
     public function setResult()
     {

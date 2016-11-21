@@ -10,9 +10,6 @@
  */
 namespace Continuous\Swf\Entity;
 
-use Continuous\Swf\WorkflowInterface;
-use Zend\Hydrator\HydratorInterface;
-
 /**
  * Workflow
  *
@@ -21,6 +18,51 @@ use Zend\Hydrator\HydratorInterface;
  */
 abstract class Workflow implements WorkflowInterface
 {
+    /**
+     * @var string uuid4
+     */
+    protected $id;
+
+    /**
+     * @var string parent workflow class name
+     */
+    protected $parent;
+
+    /**
+     * @var string uuid4
+     */
+    public function setId(string $id)
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getId() : string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param Workflow $workflow
+     * @return $this
+     */
+    public function setParent(Workflow $workflow)
+    {
+        $this->parent = get_class($workflow);
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getParent() : string
+    {
+        return $this->parent;
+    }
+
     abstract public function extract() : array;
     abstract public function hydrate(array $data);
 }

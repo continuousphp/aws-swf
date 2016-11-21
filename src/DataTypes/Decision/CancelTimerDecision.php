@@ -5,8 +5,8 @@ namespace Continuous\Swf\DataTypes\Decision;
 use Continuous\Swf\Helper\ValueObject;
 
 /**
- * Class DecisionTask
- * @package Continuous\Swf\Decider
+ * Class CancelTimerDecision
+ * @package Continuous\Swf\DataTypes\Decision
  */
 class CancelTimerDecision extends ValueObject implements DecisionInterface
 {

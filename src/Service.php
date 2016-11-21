@@ -12,6 +12,7 @@ namespace Continuous\Swf;
 
 use Aws\Result;
 use Aws\Swf\SwfClient;
+use Continuous\Swf\DataTypes\Decision\DecisionTrait;
 use Continuous\Swf\Entity\Activity;
 use Continuous\Swf\Entity\Workflow;
 use Continuous\Swf\Helper\ClassFinder;
@@ -51,18 +52,16 @@ class Service
             . DIRECTORY_SEPARATOR
             . 'autoload_classmap.php')
         ) {
-            throw new \Exception('You must generate composer autoload_classmap file 
+            throw new ServiceException('You must generate composer autoload_classmap file 
             for be able to reference your namepsace class without camelCase issues');
         }
     }
 
     /**
-     * Poll a workflow entity for next decision request
      *
      * @param string $taskList
-     * @return WorkflowInterface
      */
-    public function pollWorkflow(string $taskList = 'default') : WorkflowInterface
+    public function pollWorkflow(string $taskList = 'default')
     {
         $result = $this->swfClient->pollForDecisionTask([
             'domain' => $this->config->domain,
@@ -70,22 +69,33 @@ class Service
                 'name' => $taskList,
             ],
             'identify' => $this->config->identity,
-            'maximumPageSize' => 50,
-            'reverseOrder' => true,
+            'reverseOrder' => false,
         ]);
 
-        //TODO try catch result not Aws\Result...
+        //TODO poll with nextPageToken if max number of events is reach
 
-        $workflowType = $result['workflowType'];
-        $workflow = $this->getWorkflowEntity($workflowType['name'], $workflowType['version']);
-
-        if (isset($result['input'])) {
-            $workflow->hydrate(json_decode($result['input'], true));
+        if (empty($result['events'])) {
+            var_dump($result);
+            throw new ServiceException('No events detect on decision request.');
         }
 
-        $workflow->process($result);
+        foreach ($result['events'] as $event) {
+            if ('WorkflowExecutionStarted' !== $event['eventType']) {
+                continue;
+            }
 
-        return $workflow;
+            $workflowType = $event['workflowExecutionStartedEventAttributes']['workflowType'];
+            $decider = $this->getDeciderEntity($workflowType['name']);
+            $decider->setId($result['workflowExecution']['workflowId']);
+            $decider->setTaskToken($result['taskToken']);
+            $decider->hydrate(json_decode($event['workflowExecutionStartedEventAttributes']['input'], true));
+
+            break;
+        }
+
+        $decider->setEvents(array_reverse($result['events']));
+
+        return $decider;
     }
 
     /**
@@ -138,6 +148,22 @@ class Service
     }
 
     /**
+     * @param string $deciderName
+     * @param string $version
+     * @return DeciderInterface
+     */
+    protected function getDeciderEntity(string $deciderName) : DeciderInterface
+    {
+        $className = ClassFinder::findClass($this->config->namespace, $deciderName, 'Decider');
+
+        if (null === $className) {
+            throw new ServiceException('Decider entity not found for ' . $deciderName);
+        }
+
+        return new $className();
+    }
+
+    /**
      * @param string $name
      * @param $version
      * @return Workflow
@@ -145,6 +171,10 @@ class Service
     protected function getWorkflowEntity(string $workflowName, string $version) : Workflow
     {
         $className = ClassFinder::findClass($this->config->namespace, $workflowName, 'Workflow');
+
+        if (null === $className) {
+            throw new ServiceException('Workflow entity not found for ' . $workflowName);
+        }
 
         return new $className();
     }
@@ -157,14 +187,33 @@ class Service
     {
         $className = ClassFinder::findClass($this->config->namespace, $activityName, 'Activity');
 
+        if (null === $className) {
+            throw new ServiceException('Activity entity not found for ' . $activityName);
+        }
+
         return new $className();
     }
 
     /**
+     * Send RespondDecisionTask to SWF API.
      *
+     * @param DeciderInterface $decider
      */
-    public function startWorkflow(Workflow $workflowEntity)
+    public function respondDecisionTaskCompleted(DeciderInterface $decider)
     {
-        //$workflowEntity->extract();
+        $decisions = [];
+
+        foreach ($decider->getDecisionTasksList() as $decision) {
+            $decisions[] = $decision->toRespondDecision();
+        }
+
+        if (empty($decisions)) {
+            return;
+        }
+
+        $result = $this->swfClient->respondDecisionTaskCompleted([
+            'taskToken' => $decider->getTaskToken(),
+            'decisions' => $decisions,
+        ]);
     }
 }

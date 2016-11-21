@@ -10,9 +10,6 @@
  */
 namespace Continuous\Swf\Entity;
 
-use Continuous\Swf\ActivityInterface;
-use Zend\Hydrator\HydratorInterface;
-
 /**
  * Activity
  *
@@ -21,6 +18,28 @@ use Zend\Hydrator\HydratorInterface;
  */
 abstract class Activity implements ActivityInterface
 {
+    /**
+     * @var string uuid4
+     */
+    protected $id;
+
+    /**
+     * @var string uuid4
+     */
+    public function setId(string $id)
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getId() : string
+    {
+        return $this->id;
+    }
+
     abstract public function extract() : array;
     abstract public function hydrate(array $data);
 }
