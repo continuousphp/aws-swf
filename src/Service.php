@@ -14,6 +14,7 @@ use Aws\Result;
 use Aws\Swf\SwfClient;
 use Continuous\Swf\DataTypes\Decision\DecisionTrait;
 use Continuous\Swf\Entity\Activity;
+use Continuous\Swf\Entity\ActivityInterface;
 use Continuous\Swf\Entity\Workflow;
 use Continuous\Swf\Helper\ClassFinder;
 
@@ -58,10 +59,11 @@ class Service
     }
 
     /**
+     * Poll a workflow decider
      *
      * @param string $taskList
      */
-    public function pollWorkflow(string $taskList = 'default')
+    public function pollWorkflow(string $taskList = 'default') : DeciderInterface
     {
         $result = $this->swfClient->pollForDecisionTask([
             'domain' => $this->config->domain,
@@ -117,7 +119,7 @@ class Service
      * @param string $taskList
      * @return ActivityInterface
      */
-    public function pollActivity(string $taskList = 'default') : ActivityInterface
+    public function pollActivity(string $taskList = 'default') : Activity
     {
         $result = $this->swfClient->pollForActivityTask([
             'domain' => $this->config->domain,
@@ -126,9 +128,15 @@ class Service
             ]
         ]);
 
+        //TODO if nothing to treat...
+
+        eval(\Psy\sh());
+
         $activityName = $result['activityType']['name'];
         $activity     = $this->getActivityEntity($activityName);
 
+        $activity->setId($result['activityId']);
+        $activity->setTaskToken($result['taskToken']);
         $activity->hydrate($result['input'], $activity);
 
         return $activity;
@@ -211,9 +219,42 @@ class Service
             return;
         }
 
-        $result = $this->swfClient->respondDecisionTaskCompleted([
+        $this->swfClient->respondDecisionTaskCompleted([
             'taskToken' => $decider->getTaskToken(),
             'decisions' => $decisions,
         ]);
+    }
+
+    public function respondActivityTaskCompleted(ActivityInterface $activity, string $detail = '', string $reason = '')
+    {
+        $status = $activity->getStatus();
+
+        if (Activity::COMPLETED === $status) {
+            $this->swfClient->respondActivityTaskCompleted([
+                'taskToken' => $activity->getTaskToken(),
+                'result'    => json_encode($activity->extract()),
+            ]);
+
+            return;
+        }
+
+        if (Activity::CANCELED === $status) {
+            $this->swfClient->respondActivityTaskCanceled([
+                'taskToken' => $activity->getTaskToken(),
+                'detail' => $detail,
+            ]);
+
+            return;
+        }
+
+        if (Activity::FAILED === $status) {
+            $this->swfClient->respondActivityTaskFailed([
+                'taskToken' => $activity->getTaskToken(),
+                'detail' => $detail,
+                'reason' => $reason,
+            ]);
+
+            return;
+        }
     }
 }

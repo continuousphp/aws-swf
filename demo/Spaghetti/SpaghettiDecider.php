@@ -53,6 +53,15 @@ class SpaghettiDecider extends SpaghettiWorkflow implements DeciderInterface
             return;
         }
 
+        $events = $this->filter(
+            $this->events,
+            [ Event::ACTIVITY_TASK_SCHEDULED ]
+        );
+
+        if (0 < count($events)) {
+            return;
+        }
+
         $names = $this->filter(
             $this->events,
             [ Event::CHILD_WORKFLOW_EXECUTION_COMPLETED ],
@@ -61,8 +70,6 @@ class SpaghettiDecider extends SpaghettiWorkflow implements DeciderInterface
                 return in_array($name, ['sauce', 'bakingpasta']);
             }
         );
-
-        eval(\Psy\sh());
 
         if (2 === count($names)) {
             $this->compile();

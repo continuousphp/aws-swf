@@ -6,18 +6,30 @@ use Continuous\Swf\Entity\Activity;
 
 class EatActivity extends Activity
 {
-    public function setResult()
+    const NAME = 'spaghetti.eat';
+    const VERSION = '0.1.0';
+
+    public function getName() : string
     {
-        // TODO: Implement setResult() method.
+        return static::NAME;
+    }
+
+    public function getVersion() : string
+    {
+        return static::VERSION;
     }
 
     public function extract() : array
     {
-        // TODO: Implement extract() method.
+        return [];
     }
 
     public function hydrate(array $data)
     {
-        // TODO: Implement hydrate() method.
+    }
+
+    public function process()
+    {
+        $this->completed();
     }
 }

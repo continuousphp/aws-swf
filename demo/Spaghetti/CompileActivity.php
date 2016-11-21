@@ -19,19 +19,17 @@ class CompileActivity extends Activity
         return static::VERSION;
     }
 
-
-    public function setResult()
-    {
-        // TODO: Implement setResult() method.
-    }
-
     public function extract() : array
     {
-        // TODO: Implement extract() method.
+        return [];
     }
 
     public function hydrate(array $data)
     {
-        // TODO: Implement hydrate() method.
+    }
+
+    public function process()
+    {
+        $this->completed();
     }
 }
