@@ -4,7 +4,6 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 class Decider
 {
-
     /**
      * @var \Continuous\Swf\Service
      */
@@ -31,24 +30,16 @@ class Decider
 
     public function decisions()
     {
-        $workflow = $this->service->pollWorkflow();
-        eval(\Psy\sh());
-    }
+        foreach ($this->service->pollWorkflowGenerator() as $decider) {
 
-    public function spaghettiDecider()
-    {
+            $decider->process();
 
-    }
-
-    public function bakingPastaDecider()
-    {
-    }
-
-    public function sauceDecider()
-    {
+            if (true === $decider->hasDecisions()) {
+                $this->service->respondDecisionTaskCompleted($decider);
+            }
+        }
     }
 }
 
 $scratch = new Decider();
 $scratch->decisions();
-

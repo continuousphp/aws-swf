@@ -40,7 +40,6 @@ class Scratch
             ->setId(\Ramsey\Uuid\Uuid::uuid4())
             ->setKwisto('Ducasse')
             ->setClient('John')
-            ->setOnions(true)
         ;
 
         $input = json_encode($workflow->extract());
@@ -52,8 +51,8 @@ class Scratch
             ],
             'workflowId' => $workflow->getId(),
             'workflowType' => [
-                'name' => $workflow::NAME,
-                'version' => $workflow::VERSION,
+                'name' => $workflow->getName(),
+                'version' => $workflow->getVersion(),
             ],
             'input' => $input,
         ]);
